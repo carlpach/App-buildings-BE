@@ -58,4 +58,4 @@ app.use((error, req, res, next) => {
   return res.status(error.status || 500).json(`Error: ${error.message || "Unexpected error"}`);
 });
 
-app.listen(PORT,  () => console.log('listening on port', PORT));
+app.listen(PORT,  () => console.log(`listening on port http://localhost:${PORT}`));
