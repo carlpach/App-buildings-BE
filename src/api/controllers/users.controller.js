@@ -17,7 +17,7 @@ const getUsers = async (req, res) => {
     }
 }
 
-//Método PUT para para introducir nuevos productos en el mercado.
+//Método PUT para para eliminar 1 propiedad al usuario
 const putBuildingUser = async (req, res) => {
     try {
         const { id } = req.params;
@@ -32,6 +32,30 @@ const putBuildingUser = async (req, res) => {
         const updatedUser = await User.findByIdAndUpdate(
             userId,
             { $push: { properties: id } },
+            { new: true }
+        );
+        if (!updatedUser) {
+            return res.status(404).json({ message: "User no found." });
+        }
+        console.log("updated user -------", updatedUser);
+        return res.status(200).json(updatedUser);
+    } catch (error) {
+        return res.status(500).json(error);
+    }
+};
+
+//Método PUT para para elminar 1 propiedad al usuario
+const deleteBuildingUser = async (req, res) => {
+    try {
+        const { id } = req.params;
+        const userId = req.body._id;
+        console.log(req.body);
+        console.log(req.params);
+
+        console.log(User);
+        const updatedUser = await User.findByIdAndUpdate(
+            userId,
+            { $pull: { properties: id } },
             { new: true }
         );
         if (!updatedUser) {
@@ -64,19 +88,21 @@ const register = async (req, res) => {
             return res.status(400).json({ message: "Email already used" });
         }
 
-        // Check if the email is already used
-        if (await usedUserName(newUser.userName)) {
-            return res.status(400).json({ message: "User name already used" });
-        }
-
         // Encrypt the password
         newUser.password = bcrypt.hashSync(newUser.password, 10);
 
         // Save the created user to the database
         const createdUser = await newUser.save();
 
-        // Return a success response with the created user
-        return res.status(201).json(createdUser);
+        // Generate a token using user ID and email
+        const token = generateSign(createdUser._id, createdUser.email);
+        console.log(token);
+
+        console.log("new user data & token --------", { user: createdUser, token: token });
+
+        // Return a success response with user information and token
+        return res.status(200).json({ user: createdUser, token: token });
+
     } catch (error) {
         // Return a 500 error if an exception occurs
         return res.status(500).json(error);
@@ -125,4 +151,4 @@ const checkSession = (req, res) => {
     }
 }
 
-module.exports = {login, register, checkSession, getUsers, putBuildingUser};
+module.exports = {login, register, checkSession, getUsers, putBuildingUser, deleteBuildingUser};
